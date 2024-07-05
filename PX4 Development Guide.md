@@ -1,3 +1,22 @@
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+
+<!-- code_chunk_output -->
+
+- [PX4开发步骤](#px4开发步骤)
+  - [1. 快速上手](#1-快速上手)
+    - [1.1 提示](#11-提示)
+  - [2. 通过 VS Code 开发](#2-通过-vs-code-开发)
+    - [2.1 安装docker](#21-安装docker)
+  - [3. 第一个Demo](#3-第一个demo)
+    - [3.1 工程建立](#31-工程建立)
+    - [3.2 编译、生成固件和仿真](#32-编译-生成固件和仿真)
+- [开发时会用到的命令](#开发时会用到的命令)
+    - [更多内容施工中](#更多内容施工中)
+
+<!-- /code_chunk_output -->
+
+
 # PX4开发步骤
 ## 1. 快速上手
 - 首先安装`Ubuntu 22.04 LTS`虚拟机，安装完成后在终端输入：
@@ -37,7 +56,7 @@ wget http://fishros.com/install -O fishros && sudo bash fishros
 - 安装好`VS Code`后左上角选择`"文件-打开文件夹-PX4-Autopilot"`即可。
 - 根据提示安装全部插件，以及NET框架等。
 - 大部分操作根据提示即可完成，不过多赘述。此处只指出官方指南无法解决的问题。
-### 2.1 **安装docker**
+### 2.1 安装docker
 - 通过官方指南安装docker会遇到无法与官方源建立连接的问题，可以使用阿里镜像源。在终端输入：
 ```bash
 # step 1: 安装必要的一些系统工具
