@@ -1,138 +1,267 @@
-# PX4 Drone Autopilot
+# PX4二次开发教程
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
-[![Releases](https://img.shields.io/github/release/PX4/PX4-Autopilot.svg)](https://github.com/PX4/PX4-Autopilot/releases) [![DOI](https://zenodo.org/badge/22634/PX4/PX4-Autopilot.svg)](https://zenodo.org/badge/latestdoi/22634/PX4/PX4-Autopilot)
+<!-- code_chunk_output -->
 
-[![Nuttx Targets](https://github.com/PX4/PX4-Autopilot/workflows/Nuttx%20Targets/badge.svg)](https://github.com/PX4/PX4-Autopilot/actions?query=workflow%3A%22Nuttx+Targets%22?branch=master) [![SITL Tests](https://github.com/PX4/PX4-Autopilot/workflows/SITL%20Tests/badge.svg?branch=master)](https://github.com/PX4/PX4-Autopilot/actions?query=workflow%3A%22SITL+Tests%22)
+- [PX4二次开发教程](#px4二次开发教程)
+- [PX4开发步骤](#px4开发步骤)
+  - [1. 快速上手](#1-快速上手)
+    - [1.1 提示](#11-提示)
+  - [2. 通过 VS Code 开发](#2-通过-vs-code-开发)
+    - [2.1 安装docker](#21-安装docker)
+  - [3. 第一个Demo](#3-第一个demo)
+    - [3.1 工程建立](#31-工程建立)
+    - [3.2 编译、生成固件和仿真](#32-编译-生成固件和仿真)
+    - [3.3 烧录固件与应用程序运行](#33-烧录固件与应用程序运行)
+- [开发时会用到的命令](#开发时会用到的命令)
+    - [更多内容施工中](#更多内容施工中)
 
-[![Discord Shield](https://discordapp.com/api/guilds/1022170275984457759/widget.png?style=shield)](https://discord.gg/dronecode)
-
-This repository holds the [PX4](http://px4.io) flight control solution for drones, with the main applications located in the [src/modules](https://github.com/PX4/PX4-Autopilot/tree/main/src/modules) directory. It also contains the PX4 Drone Middleware Platform, which provides drivers and middleware to run drones.
-
-PX4 is highly portable, OS-independent and supports Linux, NuttX and MacOS out of the box.
-
-* Official Website: http://px4.io (License: BSD 3-clause, [LICENSE](https://github.com/PX4/PX4-Autopilot/blob/main/LICENSE))
-* [Supported airframes](https://docs.px4.io/main/en/airframes/airframe_reference.html) ([portfolio](https://px4.io/ecosystem/commercial-systems/)):
-  * [Multicopters](https://docs.px4.io/main/en/frames_multicopter/)
-  * [Fixed wing](https://docs.px4.io/main/en/frames_plane/)
-  * [VTOL](https://docs.px4.io/main/en/frames_vtol/)
-  * [Autogyro](https://docs.px4.io/main/en/frames_autogyro/)
-  * [Rover](https://docs.px4.io/main/en/frames_rover/)
-  * many more experimental types (Blimps, Boats, Submarines, High altitude balloons, etc)
-* Releases: [Downloads](https://github.com/PX4/PX4-Autopilot/releases)
+<!-- /code_chunk_output -->
 
 
-## Building a PX4 based drone, rover, boat or robot
+# PX4开发步骤
+## 1. 快速上手
 
-The [PX4 User Guide](https://docs.px4.io/main/en/) explains how to assemble [supported vehicles](https://docs.px4.io/main/en/airframes/airframe_reference.html) and fly drones with PX4.
-See the [forum and chat](https://docs.px4.io/main/en/#getting-help) if you need help!
+首先安装`Ubuntu 22.04 LTS`虚拟机，安装完成后在终端输入：
 
+```bash
+git clone https://github.com/PX4/PX4-Autopilot.git --recursive
+```
 
-## Changing code and contributing
+以克隆固件二次开发源码，然后输入：
 
-This [Developer Guide](https://docs.px4.io/main/en/development/development.html) is for software developers who want to modify the flight stack and middleware (e.g. to add new flight modes), hardware integrators who want to support new flight controller boards and peripherals, and anyone who wants to get PX4 working on a new (unsupported) airframe/vehicle.
+```bash
+bash ./PX4-Autopilot/Tools/setup/ubuntu.sh
+```
+等待全部提示运行通过后，重启虚拟机。然后在终端输入：
 
-Developers should read the [Guide for Contributions](https://docs.px4.io/main/en/contribute/).
-See the [forum and chat](https://docs.px4.io/main/en/#getting-help) if you need help!
+```bash
+source /opt/ros/humble/setup.bash
+export GZ_SIM_RESOURCE_PATH=~/.gz/models
+```
 
+将`QGroundControl`地面站下载到系统中，[这里是下载链接](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html)。
 
-### Weekly Dev Call
+下载完成后根据链接里的指导添加运行权限后，双击运行。然后在终端输入：
 
-The PX4 Dev Team syncs up on a [weekly dev call](https://docs.px4.io/main/en/contribute/).
+```bash
+make px4_sitl gz_x500
+```
 
-> **Note** The dev call is open to all interested developers (not just the core dev team). This is a great opportunity to meet the team and contribute to the ongoing development of the platform. It includes a QA session for newcomers. All regular calls are listed in the [Dronecode calendar](https://www.dronecode.org/calendar/).
+此为`Gazebo`仿真，官方推荐使用。或者输入：
 
+```bash
+make px4_sitl jmavsim
+```
 
-## Maintenance Team
+编译运行`jmavsim`仿真，该仿真平台由社区开发维护。
 
-Note: This is the source of truth for the active maintainers of PX4 ecosystem.
+操作完成后等待片刻即可看到仿真图形化界面，并且地面站显示已连接，随后终端提示`ready to takeoff`。
 
-| Sector | Maintainer |
-|---|---|
-| Founder | [Lorenz Meier](https://github.com/LorenzMeier) |
-| Architecture | [Daniel Agar](https://github.com/dagar) / [Beat Küng](https://github.com/bkueng)|
-| State Estimation | [Mathieu Bresciani](https://github.com/bresch) / [Paul Riseborough](https://github.com/priseborough) |
-| OS/NuttX | [David Sidrane](https://github.com/davids5) |
-| Drivers | [Daniel Agar](https://github.com/dagar) |
-| Simulation | [Jaeyoung Lim](https://github.com/Jaeyoung-Lim) |
-| ROS2 | [Beniamino Pozzan](https://github.com/beniaminopozzan) |
-| Community QnA Call | [Ramon Roche](https://github.com/mrpollo) |
-| [Documentation](https://docs.px4.io/main/en/) | [Hamish Willee](https://github.com/hamishwillee) |
+### 1.1 提示
 
-| Vehicle Type | Maintainer |
-|---|---|
-| Multirotor | [Matthias Grob](https://github.com/MaEtUgR) |
-| Fixed Wing | [Thomas Stastny](https://github.com/tstastny) |
-| Hybrid VTOL | [Silvan Fuhrer](https://github.com/sfuhrer) |
-| Boat | x |
-| Rover | x |
+固件编译需要下载一系列工具链，而ROS2环境中已经包含了大部分工具链，所以在进行以上操作前，可以先进行ROS2的安装，使用小鱼ROS一键安装，在终端输入：
 
-See also [maintainers list](https://px4.io/community/maintainers/) (px4.io) and the [contributors list](https://github.com/PX4/PX4-Autopilot/graphs/contributors) (Github). However it may be not up to date.
+```bash
+wget http://fishros.com/install -O fishros && sudo bash fishros
+```
 
-## Supported Hardware
+根据提示安装`ROS2 Humble`即可。
 
-Pixhawk standard boards and proprietary boards are shown below (discontinued boards aren't listed).
+## 2. 通过 VS Code 开发
+[官方指南](https://docs.px4.io/main/zh/dev_setup/vscode.html)
 
-For the most up to date information, please visit [PX4 user Guide > Autopilot Hardware](https://docs.px4.io/main/en/flight_controller/).
+安装好`VS Code`后左上角选择`"文件-打开文件夹-PX4-Autopilot"`即可。
 
-### Pixhawk Standard Boards
+根据提示安装全部插件，以及NET框架等。
 
-These boards fully comply with Pixhawk Standard, and are maintained by the PX4-Autopilot maintainers and Dronecode team
+大部分操作根据提示即可完成，不过多赘述。此处只指出官方指南无法解决的问题。
 
-* FMUv6X and FMUv6C
-  * [CUAV Pixahwk V6X (FMUv6X)](https://docs.px4.io/main/en/flight_controller/cuav_pixhawk_v6x.html)
-  * [Holybro Pixhawk 6X (FMUv6X)](https://docs.px4.io/main/en/flight_controller/pixhawk6x.html)
-  * [Holybro Pixhawk 6C (FMUv6C)](https://docs.px4.io/main/en/flight_controller/pixhawk6c.html)
-  * [Holybro Pix32 v6 (FMUv6C)](https://docs.px4.io/main/en/flight_controller/holybro_pix32_v6.html)
-* FMUv5 and FMUv5X (STM32F7, 2019/20)
-  * [Pixhawk 4 (FMUv5)](https://docs.px4.io/main/en/flight_controller/pixhawk4.html)
-  * [Pixhawk 4 mini (FMUv5)](https://docs.px4.io/main/en/flight_controller/pixhawk4_mini.html)
-  * [CUAV V5+ (FMUv5)](https://docs.px4.io/main/en/flight_controller/cuav_v5_plus.html)
-  * [CUAV V5 nano (FMUv5)](https://docs.px4.io/main/en/flight_controller/cuav_v5_nano.html)
-  * [Auterion Skynode (FMUv5X)](https://docs.auterion.com/avionics/skynode)
-* FMUv4 (STM32F4, 2015)
-  * [Pixracer](https://docs.px4.io/main/en/flight_controller/pixracer.html)
-  * [Pixhawk 3 Pro](https://docs.px4.io/main/en/flight_controller/pixhawk3_pro.html)
-* FMUv3 (STM32F4, 2014)
-  * [Pixhawk 2](https://docs.px4.io/main/en/flight_controller/pixhawk-2.html)
-  * [Pixhawk Mini](https://docs.px4.io/main/en/flight_controller/pixhawk_mini.html)
-  * [CUAV Pixhack v3](https://docs.px4.io/main/en/flight_controller/pixhack_v3.html)
-* FMUv2 (STM32F4, 2013)
-  * [Pixhawk](https://docs.px4.io/main/en/flight_controller/pixhawk.html)
+### 2.1 安装docker
 
-### Manufacturer supported
+通过官方指南安装docker会遇到无法与官方源建立连接的问题，可以使用阿里镜像源。在终端输入：
 
-These boards are maintained to be compatible with PX4-Autopilot by the Manufacturers.
+```bash
+# step 1: 安装必要的一些系统工具
+sudo apt-get update
+sudo apt-get -y install apt-transport-https ca-certificates curl software-properties-common
+# step 2: 安装GPG证书
+curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
+# Step 3: 写入软件源信息
+sudo add-apt-repository "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
+# Step 4: 更新并安装Docker-CE
+sudo apt-get -y update
+sudo apt-get -y install docker-ce
+```
 
-* [ARK Electronics ARKV6X](https://docs.px4.io/main/en/flight_controller/arkv6x.html)
-* [CubePilot Cube Orange+](https://docs.px4.io/main/en/flight_controller/cubepilot_cube_orangeplus.html)
-* [CubePilot Cube Orange](https://docs.px4.io/main/en/flight_controller/cubepilot_cube_orange.html)
-* [CubePilot Cube Yellow](https://docs.px4.io/main/en/flight_controller/cubepilot_cube_yellow.html)
-* [Holybro Durandal](https://docs.px4.io/main/en/flight_controller/durandal.html)
-* [Airmind MindPX V2.8](http://www.mindpx.net/assets/accessories/UserGuide_MindPX.pdf)
-* [Airmind MindRacer V1.2](http://mindpx.net/assets/accessories/mindracer_user_guide_v1.2.pdf)
-* [Holybro Kakute F7](https://docs.px4.io/main/en/flight_controller/kakutef7.html)
+然后[在此处](https://docs.docker.com/desktop/install/ubuntu/)下载`DEB PACKAGE`。*`提示：你可能需要使用代理才能打开此网站。`*
 
-### Community supported
+下载完毕后在终端输入：
 
-These boards don't fully comply industry standards, and thus is solely maintained by the PX4 public community members.
+```bash
+sudo apt install `将刚才的安装包拖到终端然后回车`
+```
 
-### Experimental
+## 3. 第一个Demo
 
-These boards are nor maintained by PX4 team nor Manufacturer, and is not guaranteed to be compatible with up to date PX4 releases.
+### 3.1 工程建立
 
-* [Raspberry PI with Navio 2](https://docs.px4.io/main/en/flight_controller/raspberry_pi_navio2.html)
-* [Bitcraze Crazyflie 2.0](https://docs.px4.io/main/en/complete_vehicles/crazyflie2.html)
+在`./src/examples`中创建`hello_sky`文件夹。
 
-## Project Roadmap
+在`hello_sky`中创建一个`hello_sky.c`，按照官方要求，二次开发需要添加以下注释：
 
-**Note: Outdated**
+```c
+/****************************************************************************
+ *
+ *   Copyright (c) 2012-2022 PX4 Development Team. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ * 3. Neither the name PX4 nor the names of its contributors may be
+ *    used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ ****************************************************************************/
+```
 
-A high level project roadmap is available [here](https://github.com/orgs/PX4/projects/25).
+然后开始写代码，注意主函数必须命名为`module_main`(`module`自定义)。
 
-## Project Governance
+```c
+/**
+ * @file hello_sky.c
+ * Minimal application example for PX4 autopilot
+ *
+ * @author Example User <mail@example.com>
+ */
 
-The PX4 Autopilot project including all of its trademarks is hosted under [Dronecode](https://www.dronecode.org/), part of the Linux Foundation.
+#include <px4_platform_common/log.h>
 
-<a href="https://www.dronecode.org/" style="padding:20px" ><img src="https://mavlink.io/assets/site/logo_dronecode.png" alt="Dronecode Logo" width="110px"/></a>
-<a href="https://www.linuxfoundation.org/projects" style="padding:20px;"><img src="https://mavlink.io/assets/site/logo_linux_foundation.png" alt="Linux Foundation Logo" width="80px" /></a>
-<div style="padding:10px">&nbsp;</div>
+__EXPORT int hello_sky_main(int argc, char *argv[]);
+
+int hello_sky_main(int argc, char *argv[])
+{
+   PX4_INFO("Hello Sky!");
+   return OK;
+}
+```
+
+创建一个名为`CMakeLists.txt`的`cmake`定义文件，添加以下代码：
+
+```txt
+############################################################################
+#
+#   Copyright (c) 2015 PX4 Development Team. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 3. Neither the name PX4 nor the names of its contributors may be
+#    used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+# OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+# AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+############################################################################
+px4_add_module(
+ MODULE examples__hello_sky
+ MAIN hello_sky
+ STACK_MAIN 2000
+ SRCS
+     hello_sky.c
+ DEPENDS
+ )
+```
+
+创建一个`Kconfig`文件，添加以下代码：
+
+```
+menuconfig EXAMPLES_HELLO_SKY
+ bool "hello_sky"
+ default n
+ ---help---
+     Enable support for hello_sky
+```
+
+### 3.2 编译、生成固件和仿真
+
+代码写好后，在终端中输入：
+
+```bash
+make px4_sitl_default boardconfig
+```
+
+在`examples`里面勾选上我们刚才写好的`hello_sky`。
+
+保存后在终端中输入：
+
+```bash
+make px4_sitl_default jmavsim
+```
+
+即可编译并开启仿真，此时在终端中输入`hello_sky`或者`hello_sky start`即可运行我们写的程序。
+
+### 3.3 烧录固件与应用程序运行
+
+打开QGroundControl地面站，用USB将电脑和飞控连接好后，点击左上角打开`Vehicle Setup`，点击`firmware`，将飞控断开连接再插上，会提示烧录固件，此时选择`自定义固件`，将`../PX4-Autopilot/build/px4_fmu-v6x_default`中的`.bin`或者`.px4`选中烧录即可。
+
+退出到主界面，点击左上角打开`Analyse Tools`，`MAVLink Console`即为飞控的系统控制终端，可以输入`<所编译的应用程序的名称> start`来运行我们所编写的应用程序。
+
+---
+
+# 开发时会用到的命令
+
+```bash
+make px4_sitl gz_x500
+make px4_sitl jmavsim
+make px4_sitl_default boardconfig
+make px4_sitl_default jmavsim
+make px4_fmu-v6x_default boardconfig
+make px4_fmu-v6x_default
+```
+
+---
+
+### 更多内容施工中
+
+[参考链接](https://docs.px4.io/main/zh/)
+
+by Alaska
