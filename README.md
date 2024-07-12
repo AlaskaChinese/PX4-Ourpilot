@@ -13,6 +13,9 @@
     - [3.1 工程建立](#31-工程建立)
     - [3.2 编译、生成固件和仿真](#32-编译-生成固件和仿真)
     - [3.3 烧录固件与应用程序运行](#33-烧录固件与应用程序运行)
+    - [3.4 应用程序类型](#34-应用程序类型)
+      - [3.4.1 工作队列任务](#341-工作队列任务)
+      - [3.4.2 任务](#342-任务)
 - [开发时会用到的命令](#开发时会用到的命令)
     - [更多内容施工中](#更多内容施工中)
 
@@ -244,6 +247,38 @@ make px4_sitl_default jmavsim
 打开QGroundControl地面站，用USB将电脑和飞控连接好后，点击左上角打开`Vehicle Setup`，点击`firmware`，将飞控断开连接再插上，会提示烧录固件，此时选择`自定义固件`，将`../PX4-Autopilot/build/px4_fmu-v6x_default`中的`.bin`或者`.px4`选中烧录即可。
 
 退出到主界面，点击左上角打开`Analyse Tools`，`MAVLink Console`即为飞控的系统控制终端，可以输入`<所编译的应用程序的名称> start`来运行我们所编写的应用程序。
+
+### 3.4 应用程序类型
+
+#### 3.4.1 工作队列任务
+
+一个运行在工作队列线程上的模块, 与工作队列上的其他任务分享堆栈和线程优先级。在大多数情况下，可以使用工作队列任务，因为这会减少资源的使用。它需要指定它是一个工作队列任务，并在初始化期间运行调度它本身。
+
+代码模板在以下目录：`src/examples/work_item`.
+
+在以下初始化函数中指定要添加任务的队列：
+```cpp
+WorkItemExample::WorkItemExample() :
+    ModuleParams(nullptr),
+    ScheduledWorkItem(MODULE_NAME, px4::wq_configurations::test1)
+{
+  //...
+}
+```
+`platforms/common/include/px4_platform_common/px4_work_queue/WorkQueueManager.hpp`中列出了可用的工作队列。
+
+#### 3.4.2 任务
+
+一个有自己的堆栈和处理优先级的模块。该应用程序是在其自己的堆栈上作为任务运行。
+
+代码模板在以下目录：`src/templates/template_module`.
+
+一个任务包含
+- 访问参数并对参数更新做出反应。
+- 订阅、等待topic更新。
+- 通过`start`/`stop`/`status`控制任务。而`module start [<arguments>]`可以直接加入[启动脚本](https://docs.px4.io/main/zh/concept/system_startup.html)中，使程序自启动。
+- 命令行参数解析。
+- 文档记录：`PRINT_MODULE_*`，[了解更多](https://github.com/PX4/Firmware/blob/v1.8.0/src/platforms/px4_module.h#L381)。
 
 ---
 
