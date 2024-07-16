@@ -16,8 +16,11 @@
     - [3.4 应用程序类型](#34-应用程序类型)
       - [3.4.1 工作队列任务](#341-工作队列任务)
       - [3.4.2 任务](#342-任务)
+  - [4. 传感器](#4-传感器)
+    - [4.1 GPS](#41-gps)
 - [开发时会用到的命令](#开发时会用到的命令)
     - [更多内容施工中](#更多内容施工中)
+    - [任务](#任务)
 
 <!-- /code_chunk_output -->
 
@@ -280,6 +283,19 @@ WorkItemExample::WorkItemExample() :
 - 命令行参数解析。
 - 文档记录：`PRINT_MODULE_*`，[了解更多](https://github.com/PX4/Firmware/blob/v1.8.0/src/platforms/px4_module.h#L381)。
 
+## 4. 传感器
+
+### 4.1 GPS
+
+Neo 3 即插即用，无需配置，可在地面站设置是否使用GPS、北斗、伽利略、格洛纳斯定位。
+
+Neo 3 Pro 则需要在地面站的`Parameters`中作以下设置：
+- 将`UAVCAN_ENABLESet`设置为`Sensors Automatic config`
+- 将`UAVCAN_SUB_GPS`设置为`Enable`
+
+在MAVLink终端中可以通过输入`gps status`查看 Neo 3 的信息。
+而GPS产生的数据可以在应用程序中订阅并发布，但具体到编程还需要时间熟悉。
+
 ---
 
 # 开发时会用到的命令
@@ -300,3 +316,7 @@ make px4_fmu-v6x_default
 [参考链接](https://docs.px4.io/main/zh/)
 
 by Alaska
+
+### 任务
+
+1. 用终端显示外部传感器的数据
