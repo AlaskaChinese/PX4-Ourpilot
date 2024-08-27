@@ -1,0 +1,5 @@
+menuconfig EXAMPLES_RW_UART
+ bool "rw_uart"
+ default n
+ ---help---
+     Enable support for rw_uart
