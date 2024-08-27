@@ -4,7 +4,7 @@
 
 <!-- code_chunk_output -->
 
-- [PX4二次开发教程](#px4二次开发教程)
+- [PX4-Ourpilot](#px4-ourpilot)
 - [PX4开发步骤](#px4开发步骤)
   - [1. 快速上手](#1-快速上手)
     - [1.1 提示](#11-提示)
@@ -19,6 +19,11 @@
       - [3.4.2 任务](#342-任务)
   - [4. 传感器](#4-传感器)
     - [4.1 GPS](#41-gps)
+  - [5. 为固件添加一个串口读取程序](#5-为固件添加一个串口读取程序)
+    - [5.1 开始](#51-开始)
+    - [5.2 代码分析](#52-代码分析)
+    - [5.3 测试](#53-测试)
+    - [5.4 总结](#54-总结)
 - [开发时会用到的命令](#开发时会用到的命令)
     - [更多内容施工中](#更多内容施工中)
     - [任务](#任务)
@@ -296,6 +301,162 @@ Neo 3 Pro 则需要在地面站的`Parameters`中作以下设置：
 
 在MAVLink终端中可以通过输入`gps status`查看 Neo 3 的信息。
 而GPS产生的数据可以在应用程序中订阅并发布，但具体到编程还需要时间熟悉。
+
+## 5. 为固件添加一个串口读取程序
+
+### 5.1 开始
+
+首先在PX4源码目录中`/src/examples`里面创建文件夹，命名为`rw_uart`，并在该文件夹下添加以下文件：`rw_uart.c`、`Kconfig`和`CMakeLists.txt`。
+
+然后输入`make px4_fmu-v6x_default boardconfig`，在`examples`里面勾选`rw_uart`，勾选后保存并退出。然后输入`make px4_fmu-v6x_default`编译并生成固件。再将固件通过QGC上传至飞控即可。
+
+### 5.2 代码分析
+
+`Nuttx`是一个嵌入式实时操作系统，它的运作方式以及开发方式都与Linux特别相似。
+
+而在`Linux`中，万物皆文件，打开串口设备和打开普通文件一样，使用的是`open()`函数。而使用选项`O_NOCTTY`表示不能把本串口当成控制终端，否则用户的键盘输入信息将影响程序的执行。如果没有找到该设备则输出错误信息。设备可以在终端中使用`ls /dev`查看。而对于我们的`CUAV Pixhawk V6X`设备树详见下表。
+
+| Port | Path | Driver |
+| :---: | :---: | :---: |
+| USART1 | /dev/ttyS0 | GPS
+| USART2 | /dev/ttyS1 | TELEM3
+| USART3 | /dev/ttyS2 | Debug Console
+| UART4 | /dev/ttyS3 | UART4
+| UART5	| /dev/ttyS4 | TELEM2
+| USART6 | /dev/ttyS5 | PX4IO/RC
+| UART7 | /dev/ttyS6 | TELEM1
+| UART8	| /dev/ttyS7 | GPS2
+
+```c
+// 串口初始化函数
+int uart_init(const char *uart_name) {
+    int serial_fd = open(uart_name, O_RDWR | O_NOCTTY);
+    if (serial_fd < 0) {
+        err(1, "failed to open port: %s", uart_name);
+        return false;
+    }
+    return serial_fd;
+}
+```
+
+初始化串口后还需要设置相关参数，比如波特率、有无校验位、停止位。
+```c
+// 波特率设置函数
+int set_uart_baudrate(const int fd, unsigned int baud)
+{
+    int speed;
+
+    switch (baud) {
+    case 9600:   speed = 9600;   break;
+    case 19200:  speed = 19200;  break;
+    case 38400:  speed = 38400;  break;
+    case 57600:  speed = 57600;  break;
+    case 115200: speed = 115200; break;
+    default:
+        warnx("ERR: baudrate: %d\n", baud);
+        return -EINVAL;
+    }
+
+    struct termios uart_config;
+    /*
+    termios 函数族提供了一个常规的终端接口，用于控制非同步通信端口。 这个结构包含了至少下列成员：
+    tcflag_t c_iflag;      输入模式
+    tcflag_t c_oflag;      输出模式
+    tcflag_t c_cflag;      控制模式
+    tcflag_t c_lflag;      本地模式
+    cc_t c_cc[NCCS];       控制字符
+    */
+
+    int termios_state;
+
+    tcgetattr(fd, &uart_config); // 获取终端参数
+
+    uart_config.c_oflag &= ~ONLCR;// 将NL转换成CR(回车)-NL后输出。
+
+    /* 无偶校验，一个停止位 */
+    uart_config.c_cflag &= ~(CSTOPB | PARENB);// CSTOPB 使用两个停止位，PARENB 表示偶校验
+
+    /* 设置波特率 */
+    if ((termios_state = cfsetispeed(&uart_config, speed)) < 0) {
+        warnx("ERR: %d (cfsetispeed)\n", termios_state);
+        return false;
+    }
+
+    if ((termios_state = cfsetospeed(&uart_config, speed)) < 0) {
+        warnx("ERR: %d (cfsetospeed)\n", termios_state);
+        return false;
+    }
+    // 设置与终端相关的参数，TCSANOW 立即改变参数
+    if ((termios_state = tcsetattr(fd, TCSANOW, &uart_config)) < 0) {
+        warnx("ERR: %d (tcsetattr)\n", termios_state);
+        return false;
+    }
+    return true;
+}
+```
+
+以上函数都写好后，就不需要再改动了，数据接收与预处理都在主函数中进行修改，后处理需要在`module`和QGC的二次开发中进行，比如我们要接收`mr 0f 000005a4 000004c8 00000436 000003f9 0958 c0 40424042 a0:0`这样一连串并保存，我们可以创建一个结构体，把每个部分都创建一个成员，这些成员的数据长度都是不会变化的，在串口读取时我们可以很简单地使用for循环来遍例读取给定长度的字节，并保存到结构体成员中，再进行后续的uORB相关数据处理。
+```c
+// 主函数
+int rw_uart_main(int argc, char *argv[]) {
+    char data = '0';
+    char buffer[4] = "";
+    /*
+     * USART1	/dev/ttyS0	GPS
+     * USART2	/dev/ttyS1	TELEM3
+     * USART3	/dev/ttyS2	Debug Console
+     * UART4	/dev/ttyS3	UART4
+     * UART5	/dev/ttyS4	TELEM2
+     * USART6	/dev/ttyS5	PX4IO/RC
+     * UART7	/dev/ttyS6	TELEM1
+     * UART8	/dev/ttyS7	GPS2
+     */
+    int uart_fd = uart_init("/dev/ttyS3");
+
+    if(false == uart_fd){
+        printf("read uart failed\n");
+        return -1;
+    }
+
+    if (false == set_uart_baudrate(uart_fd, 115200)) {
+        printf("set_uart_baudrate is failed\n");
+        return -1;
+    }
+
+    printf("[JXF]UART init is successful\n");
+
+    while (true) {
+        read(uart_fd, &data, 1);
+
+	// 如果读取到的数据是字符 'm'，则继续读取接下来的4个字节并打印出来
+	// mr 0f 000005a4 000004c8 00000436 000003f9 0958 c0 40424042 a0:0
+        if (data == 'm') {
+            for(int i = 0;i <4;++i){
+                read(uart_fd, &data, 1);
+                buffer[i] = data;
+                data = '0';
+            }
+            printf("%s\n", buffer);
+        }
+    }
+
+    close(uart_fd);
+    return 0;
+}
+```
+
+### 5.3 测试
+
+将飞控上的UART4与STlink V3上的串口相连，打开串口助手和QGC，首先在QGC的MAVLINK终端上输入`rw_uart`运行程序，然后使用串口助手打开STlink的串口，向飞控的UART4发送数据，飞控接收后在QGC的MAVLINK终端上把数据打印出来。
+![test](/assets/53test.png)
+
+### 5.4 总结
+
+这部分主要难点还是在于之前都没有接触过Linux的系统开发，后来学习了一些嵌入式Linux的内容后，思路也变得清晰了，结合着网上的资料还是成功把这一块做了出来。
+
+程序需要改进的地方：
+* 适配UWB数据格式
+* 程序什么时候退出
 
 ---
 
