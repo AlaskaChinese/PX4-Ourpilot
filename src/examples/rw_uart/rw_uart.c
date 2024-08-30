@@ -77,6 +77,15 @@ int set_uart_baudrate(const int fd, unsigned int baud)
 int uart_init(const char *uart_name) {
     /*Linux中，万物皆文件，打开串口设备和打开普通文件一样，使用的是open（）系统调用*/
     // 选项 O_NOCTTY 表示不能把本串口当成控制终端，否则用户的键盘输入信息将影响程序的执行
+    /*
+     * O_CREAT 要打开的文件名不存在时自动创建改文件。
+     * O_EXCL 要和 O_CREAT 一起使用才能生效， 如果文件存在则 open()调用失败。
+     * O_RDONLY 只读模式打开文件。
+     * O_WRONLY 只写模式打开文件。
+     * O_RDWR 可读可写模式打开文件。
+     * O_APPEND 以追加模式打开文件。
+     * O_NONBLOCK 以非阻塞模式打开。
+     * */
     int serial_fd = open(uart_name, O_RDWR | O_NOCTTY);
     if (serial_fd < 0) {
         err(1, "failed to open port: %s", uart_name);
