@@ -121,7 +121,18 @@ int rw_uart_main(int argc, char *argv[]) {
 
     printf("[JXF]UART init is successful\n");
 
-    while (true) {
+    while (true)
+    {
+        // int uart_fd;  // 串口文件描述符
+        // char buffer[256];  // 缓冲区
+        // int read_bytes;  // 读取的字节数
+        // memset(buffer, '\0', sizeof(buffer));  // 初始化缓冲区
+        // read_bytes = read(uart_fd, buffer, sizeof(buffer));
+        // if (read_bytes > 0)
+        // {
+        //     printf("read %d bytes: %s\n", read_bytes, buffer);
+        // }
+
         read(uart_fd, &data, 1);
 
 	// 如果读取到的数据是字符 'm'，则继续读取接下来的4个字节并打印出来
@@ -134,6 +145,8 @@ int rw_uart_main(int argc, char *argv[]) {
             }
             printf("%s\n", buffer);
         }
+        else if( data == 'n' )
+            break;
     }
 
     close(uart_fd);
