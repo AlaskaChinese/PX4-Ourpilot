@@ -24,6 +24,8 @@
     - [5.2 代码分析](#52-代码分析)
     - [5.3 测试](#53-测试)
     - [5.4 总结](#54-总结)
+    - [5.5 读取任意长度字符串](#55-读取任意长度字符串)
+      - [5.5.1 测试](#551-测试)
 - [开发时会用到的命令](#开发时会用到的命令)
     - [更多内容施工中](#更多内容施工中)
     - [任务](#任务)
@@ -457,6 +459,27 @@ int rw_uart_main(int argc, char *argv[]) {
 程序需要改进的地方：
 * 适配UWB数据格式
 * 程序什么时候退出
+
+### 5.5 读取任意长度字符串
+
+在`while`循环内加入如下代码，并在主函数内定义相关变量。完整代码见`rw_uart2.c`
+```c
+// int uart_fd;  // 串口文件描述符
+// char buffer[256];  // 缓冲区
+// int read_bytes;  // 读取的字节数
+memset(buffer, '\0', sizeof(buffer));  // 初始化缓冲区
+read_bytes = read(uart_fd, buffer, sizeof(buffer));
+if (read_bytes > 0)
+{
+    printf("read %d bytes: %s\n", read_bytes, buffer);
+}
+```
+#### 5.5.1 测试
+
+测试发现数据是完整的，但不能一次性打印完毕。***（亟待解决）***
+
+![test](/assets/5511test.png)
+![test](/assets/551test.png)
 
 ---
 
