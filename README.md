@@ -478,7 +478,7 @@ if (read_bytes > 0)
 
 测试发现数据是完整的，但不会处理。***（亟待解决）***
 
-*** 更新 *** 可以使用strtok()函数分解字符串。
+***（更新）*** 可以使用strtok()函数分解字符串。
 
 ![test](/assets/5511test.png)
 ![test](/assets/551test.png)
