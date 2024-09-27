@@ -476,12 +476,230 @@ if (read_bytes > 0)
 ```
 #### 5.5.1 测试
 
-测试发现数据是完整的，但不会处理。***（亟待解决）***
+原始数据如下：
 
-***（更新）*** 可以使用strtok()函数分解字符串。
+```
+55 04 ac 00 02 01 ba 66 1d 00 06 09 ff de 0a 00 df ff ff e8 03 00 fa ff ff 1a 00 00 00 00 00 c0 12 00 00 00 00 00 00 00 27 ac e2 3c 56 ed 1c 3c d2 70 3b bd 32 57 66 3e 3b cb 1b 41 93 70 61bd 25 b2 6b 41 a1 22 6c 41 da da 6b 41 6d 23 e9 23 70 dd db f7 30 3f 5f d6 31 3f ba 81 1e 3e 47 69 e2 bd 91 9b 40 40 c5 23 00 00 40 40 5c d5 1c 00 00 00 1d 00 6d 13 04 01 00 6b 0c 00 b1 9f a6 66 1d 00 16 45 01 01 ac 15 00 b4 a1 a6 66 1d 00 d3 01 01 02 48 1a 00 ca 9f a6 66 1d 00 38 ba 01 03 2b 12 00 c6 a0 a6 66 1d 00 64 40 25
+```
+
+测试发现数据是完整的，但不会处理。***（亟待解决）***
 
 ![test](/assets/5511test.png)
 ![test](/assets/551test.png)
+
+***思路***
+
+使用`strtok()`函数分解字符串，再使用`strtol()`函数，可以将字符串转换为长整型整数值。以下是一个示例：
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_BYTES 200
+
+int main() {
+    const char *hex_string = "55 04 ac 00 02 01 ba 66 1d 00 06 09 ff de 0a 00 df ff ff e8 03 00 fa ff ff 1a 00 00 00 00 00 c0 12 00 00 00 00 00 00 00 27 ac e2 3c 56 ed 1c 3c d2 70 3b bd 32 57 66 3e 3b cb 1b 41 93 70 61bd 25 b2 6b 41 a1 22 6c 41 da da 6b 41 6d 23 e9 23 70 dd db f7 30 3f 5f d6 31 3f ba 81 1e 3e 47 69 e2 bd 91 9b 40 40 c5 23 00 00 40 40 5c d5 1c 00 00 00 1d 00 6d 13 04 01 00 6b 0c 00 b1 9f a6 66 1d 00 16 45 01 01 ac 15 00 b4 a1 a6 66 1d 00 d3 01 01 02 48 1a 00 ca 9f a6 66 1d 00 38 ba 01 03 2b 12 00 c6 a0 a6 66 1d 00 64 40 25";
+    
+    unsigned char bytes[MAX_BYTES];
+    int byte_count = 0;
+    char *token;
+    char *str = strdup(hex_string);  // 创建字符串的副本，因为strtok会修改原字符串
+    
+    // 使用strtok函数分割字符串
+    token = strtok(str, " ");
+    while (token != NULL && byte_count < MAX_BYTES) {
+        // 将十六进制字符串转换为整数，并存储在bytes数组中
+        bytes[byte_count++] = (unsigned char)strtol(token, NULL, 16);
+        token = strtok(NULL, " ");
+    }
+    
+    // 打印结果
+    printf("Total bytes: %d\n", byte_count);
+    for (int i = 0; i < byte_count; i++) {
+        printf("bytes[%d] = 0x%02X\n", i, bytes[i]);
+    }
+    
+    free(str);  // 释放动态分配的内存
+    return 0;
+}
+```
+
+运行结果：
+```
+Total bytes: 171
+bytes[0] = 0x55
+bytes[1] = 0x04
+bytes[2] = 0xAC
+bytes[3] = 0x00
+bytes[4] = 0x02
+bytes[5] = 0x01
+bytes[6] = 0xBA
+bytes[7] = 0x66
+bytes[8] = 0x1D
+bytes[9] = 0x00
+bytes[10] = 0x06
+bytes[11] = 0x09
+bytes[12] = 0xFF
+bytes[13] = 0xDE
+bytes[14] = 0x0A
+bytes[15] = 0x00
+bytes[16] = 0xDF
+bytes[17] = 0xFF
+bytes[18] = 0xFF
+bytes[19] = 0xE8
+bytes[20] = 0x03
+bytes[21] = 0x00
+bytes[22] = 0xFA
+bytes[23] = 0xFF
+bytes[24] = 0xFF
+bytes[25] = 0x1A
+bytes[26] = 0x00
+bytes[27] = 0x00
+bytes[28] = 0x00
+bytes[29] = 0x00
+bytes[30] = 0x00
+bytes[31] = 0xC0
+bytes[32] = 0x12
+bytes[33] = 0x00
+bytes[34] = 0x00
+bytes[35] = 0x00
+bytes[36] = 0x00
+bytes[37] = 0x00
+bytes[38] = 0x00
+bytes[39] = 0x00
+bytes[40] = 0x27
+bytes[41] = 0xAC
+bytes[42] = 0xE2
+bytes[43] = 0x3C
+bytes[44] = 0x56
+bytes[45] = 0xED
+bytes[46] = 0x1C
+bytes[47] = 0x3C
+bytes[48] = 0xD2
+bytes[49] = 0x70
+bytes[50] = 0x3B
+bytes[51] = 0xBD
+bytes[52] = 0x32
+bytes[53] = 0x57
+bytes[54] = 0x66
+bytes[55] = 0x3E
+bytes[56] = 0x3B
+bytes[57] = 0xCB
+bytes[58] = 0x1B
+bytes[59] = 0x41
+bytes[60] = 0x93
+bytes[61] = 0x70
+bytes[62] = 0xBD
+bytes[63] = 0x25
+bytes[64] = 0xB2
+bytes[65] = 0x6B
+bytes[66] = 0x41
+bytes[67] = 0xA1
+bytes[68] = 0x22
+bytes[69] = 0x6C
+bytes[70] = 0x41
+bytes[71] = 0xDA
+bytes[72] = 0xDA
+bytes[73] = 0x6B
+bytes[74] = 0x41
+bytes[75] = 0x6D
+bytes[76] = 0x23
+bytes[77] = 0xE9
+bytes[78] = 0x23
+bytes[79] = 0x70
+bytes[80] = 0xDD
+bytes[81] = 0xDB
+bytes[82] = 0xF7
+bytes[83] = 0x30
+bytes[84] = 0x3F
+bytes[85] = 0x5F
+bytes[86] = 0xD6
+bytes[87] = 0x31
+bytes[88] = 0x3F
+bytes[89] = 0xBA
+bytes[90] = 0x81
+bytes[91] = 0x1E
+bytes[92] = 0x3E
+bytes[93] = 0x47
+bytes[94] = 0x69
+bytes[95] = 0xE2
+bytes[96] = 0xBD
+bytes[97] = 0x91
+bytes[98] = 0x9B
+bytes[99] = 0x40
+bytes[100] = 0x40
+bytes[101] = 0xC5
+bytes[102] = 0x23
+bytes[103] = 0x00
+bytes[104] = 0x00
+bytes[105] = 0x40
+bytes[106] = 0x40
+bytes[107] = 0x5C
+bytes[108] = 0xD5
+bytes[109] = 0x1C
+bytes[110] = 0x00
+bytes[111] = 0x00
+bytes[112] = 0x00
+bytes[113] = 0x1D
+bytes[114] = 0x00
+bytes[115] = 0x6D
+bytes[116] = 0x13
+bytes[117] = 0x04
+bytes[118] = 0x01
+bytes[119] = 0x00
+bytes[120] = 0x6B
+bytes[121] = 0x0C
+bytes[122] = 0x00
+bytes[123] = 0xB1
+bytes[124] = 0x9F
+bytes[125] = 0xA6
+bytes[126] = 0x66
+bytes[127] = 0x1D
+bytes[128] = 0x00
+bytes[129] = 0x16
+bytes[130] = 0x45
+bytes[131] = 0x01
+bytes[132] = 0x01
+bytes[133] = 0xAC
+bytes[134] = 0x15
+bytes[135] = 0x00
+bytes[136] = 0xB4
+bytes[137] = 0xA1
+bytes[138] = 0xA6
+bytes[139] = 0x66
+bytes[140] = 0x1D
+bytes[141] = 0x00
+bytes[142] = 0xD3
+bytes[143] = 0x01
+bytes[144] = 0x01
+bytes[145] = 0x02
+bytes[146] = 0x48
+bytes[147] = 0x1A
+bytes[148] = 0x00
+bytes[149] = 0xCA
+bytes[150] = 0x9F
+bytes[151] = 0xA6
+bytes[152] = 0x66
+bytes[153] = 0x1D
+bytes[154] = 0x00
+bytes[155] = 0x38
+bytes[156] = 0xBA
+bytes[157] = 0x01
+bytes[158] = 0x03
+bytes[159] = 0x2B
+bytes[160] = 0x12
+bytes[161] = 0x00
+bytes[162] = 0xC6
+bytes[163] = 0xA0
+bytes[164] = 0xA6
+bytes[165] = 0x66
+bytes[166] = 0x1D
+bytes[167] = 0x00
+bytes[168] = 0x64
+bytes[169] = 0x40
+bytes[170] = 0x25
+```
 
 ---
 
