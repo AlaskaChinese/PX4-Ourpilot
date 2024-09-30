@@ -487,7 +487,7 @@ if (read_bytes > 0)
 ![test](/assets/5511test.png)
 ![test](/assets/551test.png)
 
-***思路***
+***9月27日***
 
 使用`strtok()`函数分解字符串，再使用`strtol()`函数，可以将字符串转换为长整型整数值。以下是一个示例：
 
@@ -704,6 +704,12 @@ bytes[170] = 0x25
 前提条件是连续读出这171组数据，存于一个buffer中，然后再进行分割。
 
 否则只能用另外一种思路：当读到空格`' '`就存入一个数据。
+
+***9月30日***
+
+我才发现一个问题，UWB的数据格式并非字符串，而是无符号整型、整型、浮点数型等变量，首先就需要进行适配：使用动态解析（状态机）将数据流分块处理，识别不同的格式。数据格式见空循环UWB手册中的协议二一节：[LinkTrack User Manual V2.3](https://ftp.nooploop.com/downloads/linktrack/LinkTrack_User_Manual_V2.3_zh.pdf)。否则用我的程序读取出来的是乱码，如下图：
+
+![rw_error](/assets/rw_error.jpeg)
 
 ---
 
